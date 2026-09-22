@@ -7,3 +7,5 @@ allure-report/
 test-results/
 playwright-report/
 .env
+.idea/
+.auth/

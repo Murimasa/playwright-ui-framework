@@ -1,26 +1,19 @@
-from playwright.sync_api import Page, expect
-from pages.login_page import LoginPage
+from playwright.sync_api import expect
 from pages.inventory_page import InventoryPage
 
 
-def test_inventory_page_header(
-    login_page: LoginPage, inventory_page: InventoryPage
-):
-    # 1. Login to reach the inventory page
-    login_page.navigate()
-    login_page.login("standard_user", "secret_sauce")
+def test_inventory_page_header(inventory_page: InventoryPage):
+    # 1. Open catalog directly via pre-authenticated context
+    inventory_page.open("https://www.saucedemo.com/inventory.html")
 
     # 2. Verify products header is visible and has correct text
     expect(inventory_page.page_title).to_be_visible()
     expect(inventory_page.page_title).to_have_text("Products")
 
 
-def test_add_item_to_cart(
-    login_page: LoginPage, inventory_page: InventoryPage
-):
-    # 1. Login
-    login_page.navigate()
-    login_page.login("standard_user", "secret_sauce")
+def test_add_item_to_cart(inventory_page: InventoryPage):
+    # 1. Open catalog
+    inventory_page.open("https://www.saucedemo.com/inventory.html")
 
     # 2. Add item to cart
     inventory_page.add_backpack_to_cart()
