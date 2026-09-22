@@ -1,3 +1,4 @@
+import pytest
 from playwright.sync_api import Page, expect
 from pages.login_page import LoginPage
 from pages.inventory_page import InventoryPage
@@ -14,27 +15,51 @@ def test_complete_checkout_flow(
     checkout_step_two_page: CheckoutStepTwoPage,
     page: Page,
 ):
-    # 1. Authorize
     login_page.navigate()
     login_page.login("standard_user", "secret_sauce")
 
-    # 2. Add product and open cart
     inventory_page.add_backpack_to_cart()
     inventory_page.go_to_cart()
 
-    # 3. Proceed to checkout form
     cart_page.click_checkout()
     expect(page).to_have_url(checkout_step_one_page.URL)
 
-    # 4. Fill customer details and continue
     checkout_step_one_page.fill_checkout_form("John", "Doe", "12345")
     expect(page).to_have_url(checkout_step_two_page.URL)
 
-    # 5. Finish order
     checkout_step_two_page.click_finish()
-
-    # 6. Verify successful completion header
     expect(checkout_step_two_page.complete_header).to_be_visible()
     expect(checkout_step_two_page.complete_header).to_have_text(
         "Thank you for your order!"
     )
+
+
+@pytest.mark.parametrize(
+    "first_name, last_name, postal_code, expected_error",
+    [
+        ("", "Doe", "12345", "Error: First Name is required"),
+        ("John", "", "12345", "Error: Last Name is required"),
+        ("John", "Doe", "", "Error: Postal Code is required"),
+    ],
+    ids=["missing_first_name", "missing_last_name", "missing_postal_code"],
+)
+def test_checkout_form_validation(
+    login_page: LoginPage,
+    inventory_page: InventoryPage,
+    cart_page: CartPage,
+    checkout_step_one_page: CheckoutStepOnePage,
+    first_name: str,
+    last_name: str,
+    postal_code: str,
+    expected_error: str,
+):
+    login_page.navigate()
+    login_page.login("standard_user", "secret_sauce")
+    inventory_page.add_backpack_to_cart()
+    inventory_page.go_to_cart()
+    cart_page.click_checkout()
+
+    checkout_step_one_page.fill_checkout_form(first_name, last_name, postal_code)
+
+    expect(checkout_step_one_page.error_message).to_be_visible()
+    expect(checkout_step_one_page.error_message).to_have_text(expected_error)
