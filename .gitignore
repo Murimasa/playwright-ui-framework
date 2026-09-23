@@ -9,3 +9,4 @@ playwright-report/
 .env
 .idea/
 .auth/
+test-results/

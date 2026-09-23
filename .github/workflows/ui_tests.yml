@@ -11,8 +11,12 @@ permissions:
   contents: write
 
 jobs:
-  run-tests:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
 
     steps:
       - name: Checkout code
@@ -29,17 +33,47 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Playwright browsers and system dependencies
+      - name: Install Playwright browser and dependencies
         run: |
-          playwright install --with-deps chromium
+          playwright install ${{ matrix.browser }} --with-deps
 
       - name: Run UI tests
         run: |
-          pytest tests/ -v
+          pytest --browser ${{ matrix.browser }} -v
+
+      - name: Upload Allure results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: allure-results/
+          retention-days: 1
+
+      - name: Upload Traces if failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traces-${{ matrix.browser }}
+          path: test-results/traces/
+          retention-days: 7
+
+  report:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all Allure results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-*
+          path: combined-allure-results
+          merge-multiple: true
 
       - name: Get Allure history
         uses: actions/checkout@v4
-        if: always()
         continue-on-error: true
         with:
           ref: gh-pages
@@ -47,20 +81,17 @@ jobs:
 
       - name: Build Allure report
         uses: simple-elf/allure-report-action@master
-        if: always()
         with:
-          allure_results: allure-results
+          allure_results: combined-allure-results
           allure_history: allure-history
           keep_reports: 20
 
       - name: Create root redirect to latest report
-        if: always()
         run: |
-            sudo chmod -R 777 allure-history
-            echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=./${{ github.run_number }}/"></head><body>Redirecting to latest Allure Report...</body></html>' > allure-history/index.html
-      
+          sudo chmod -R 777 allure-history
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=./${{ github.run_number }}/"></head><body>Redirecting to latest Allure Report...</body></html>' > allure-history/index.html
+
       - name: Deploy Allure report to GitHub Pages
-        if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
