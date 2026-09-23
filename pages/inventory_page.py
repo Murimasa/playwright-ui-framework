@@ -1,31 +1,56 @@
+import allure
 from playwright.sync_api import Page, Locator
-from pages.base_page import BasePage
 
 
-class InventoryPage(BasePage):
+class InventoryPage:
     URL = "https://www.saucedemo.com/inventory.html"
 
     def __init__(self, page: Page):
-        super().__init__(page)
-        # Locators
-        self.page_title: Locator = page.locator(".title")
-        self.shopping_cart_link: Locator = page.locator(".shopping_cart_link")
-        self.shopping_cart_badge: Locator = page.locator(".shopping_cart_badge")
-        self.add_to_cart_backpack_btn: Locator = page.locator(
-            "#add-to-cart-sauce-labs-backpack"
-        )
-        self.remove_backpack_btn: Locator = page.locator(
-            "#remove-sauce-labs-backpack"
-        )
+        self.page = page
+        self.sort_select = page.locator("[data-test='product-sort-container']")
+        self.inventory_item_names = page.locator("[data-test='inventory-item-name']")
+        self.inventory_item_prices = page.locator("[data-test='inventory-item-price']")
+        self.add_backpack_btn = page.locator("[data-test='add-to-cart-sauce-labs-backpack']")
+        self.shopping_cart_badge = page.locator("[data-test='shopping-cart-badge']")
 
-    def add_backpack_to_cart(self):
-        """Add Sauce Labs Backpack to the shopping cart."""
-        self.add_to_cart_backpack_btn.click()
+        # Sidebar navigation controls
+        self.burger_menu_btn = page.locator("#react-burger-menu-btn")
+        self.menu_logout_link = page.locator("[data-test='logout-sidebar-link']")
+        self.menu_reset_link = page.locator("[data-test='reset-sidebar-link']")
+        self.menu_close_btn = page.locator("#react-burger-cross-btn")
 
-    def go_to_cart(self):
-        """Click on the cart icon to navigate to the Cart page."""
-        self.shopping_cart_link.click()
+    @allure.step("Open inventory page")
+    def open(self, url: str | None = None):
+        target_url = url or self.URL
+        self.page.goto(target_url)
 
-    def get_cart_badge_count(self) -> str:
-        """Return the current item count displayed on the cart badge."""
-        return self.shopping_cart_badge.inner_text()
+    @allure.step("Select sort option: {option_value}")
+    def select_sort_option(self, option_value: str):
+        # Options: 'az', 'za', 'lohi', 'hilo'
+        self.sort_select.select_option(option_value)
+
+    @allure.step("Get all product titles displayed on page")
+    def get_item_names(self) -> list[str]:
+        return self.inventory_item_names.all_text_contents()
+
+    @allure.step("Get all product prices parsed as floats")
+    def get_item_prices(self) -> list[float]:
+        raw_prices = self.inventory_item_prices.all_text_contents()
+        # Parse currency formatted strings like '$29.99' into float 29.99
+        return [float(price.replace("$", "")) for price in raw_prices]
+
+    @allure.step("Open sidebar burger menu")
+    def open_burger_menu(self):
+        self.burger_menu_btn.click()
+        self.menu_logout_link.wait_for(state="visible")
+
+    @allure.step("Reset application state via menu")
+    def reset_app_state(self):
+        self.open_burger_menu()
+        self.menu_reset_link.click()
+        self.menu_close_btn.click()
+
+    @allure.step("Logout from application")
+    def logout(self):
+        self.open_burger_menu()
+        self.menu_logout_link.click()
