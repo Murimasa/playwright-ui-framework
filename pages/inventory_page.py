@@ -12,7 +12,7 @@ class InventoryPage:
         self.inventory_item_prices = page.locator("[data-test='inventory-item-price']")
         self.add_backpack_btn = page.locator("[data-test='add-to-cart-sauce-labs-backpack']")
         self.shopping_cart_badge = page.locator("[data-test='shopping-cart-badge']")
-
+        self.shopping_cart_link = page.locator("[data-test='shopping-cart-link']")
         # Sidebar navigation controls
         self.burger_menu_btn = page.locator("#react-burger-menu-btn")
         self.menu_logout_link = page.locator("[data-test='logout-sidebar-link']")
@@ -54,3 +54,11 @@ class InventoryPage:
     def logout(self):
         self.open_burger_menu()
         self.menu_logout_link.click()
+
+    @allure.step("Add Sauce Labs Backpack to cart")
+    def add_backpack_to_cart(self):
+        self.add_backpack_btn.click()
+
+    @allure.step("Navigate to shopping cart")
+    def go_to_cart(self):
+        self.shopping_cart_link.click()
