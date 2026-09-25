@@ -1,7 +1,7 @@
 # 🎭 Playwright UI Automation Framework
 
-[![UI Automation Tests (Playwright)](https://github.com/Murimasa/playwright-ui-framework/actions/workflows/ui_tests.yml/badge.svg)](https://github.com/Murimasa/playwright-ui-framework/actions/workflows/ui_tests.yml)
-[![Allure Report](https://img.shields.io/badge/Allure_Report-Live_Dashboard-success?logo=allure)](https://Murimasa.github.io/playwright-ui-framework/)
+[![UI Automation Tests (Playwright)](https://github.com/mtsaryov/playwright-ui-framework/actions/workflows/ui_tests.yml/badge.svg)](https://github.com/mtsaryov/playwright-ui-framework/actions/workflows/ui_tests.yml)
+[![Allure Report](https://img.shields.io/badge/Allure_Report-Live_Dashboard-success?logo=allure)](https://mtsaryov.github.io/playwright-ui-framework/)
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![Playwright](https://img.shields.io/badge/Playwright-Chromium-green)
 ![Pytest](https://img.shields.io/badge/Pytest-Automation-orange)
