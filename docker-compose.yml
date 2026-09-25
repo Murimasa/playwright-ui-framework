@@ -1,0 +1,12 @@
+services:
+  ui-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: playwright-tests:latest
+    container_name: playwright_runner
+    volumes:
+      - ./allure-results:/app/allure-results
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: pytest -v --alluredir=/app/allure-results --clean-alluredir
